@@ -1,10 +1,12 @@
-module go-blin
+module goblin
 
 go 1.21.4
 
 require (
+	github.com/fsnotify/fsnotify v1.7.0
 	github.com/getkin/kin-openapi v0.125.0
 	github.com/go-openapi/runtime v0.28.0
+	golang.org/x/tools v0.22.0
 )
 
 require (
@@ -27,6 +29,8 @@ require (
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
 	go.mongodb.org/mongo-driver v1.14.0 // indirect
-	golang.org/x/sync v0.6.0 // indirect
+	golang.org/x/mod v0.18.0 // indirect
+	golang.org/x/sync v0.7.0 // indirect
+	golang.org/x/sys v0.21.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

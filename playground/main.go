@@ -3,21 +3,89 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	goblin "goblin/client"
-	"goblin/client/responses"
 	"io"
 	"net/http"
+
+	g "goblin"
+	"goblin/responses"
+	resesesponse "goblin/responses"
 
 	"github.com/getkin/kin-openapi/openapi3"
 )
 
-type User struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-	Age  int    `json:"age"`
+//go:generate go run goblin/analyze
+
+var API *g.Client
+
+type APIWrapperPreChildChild struct {
+	api APIWrapperPreChild
 }
 
-// PokemonResponse represents the structure of the Pokemon API response
+type APIWrapperPreChild struct {
+	api APIWrapperPrePre
+}
+
+type APIWrapperPrePre struct {
+	APIWrapperPre
+}
+
+type APIWrapperPre struct {
+	APIWrapper
+}
+type APIWrapper struct {
+	nice g.Client
+}
+
+type APIWrapperPost struct {
+	APIWrapper
+}
+
+type APIWrapperPostPost struct {
+	APIWrapperPost
+}
+
+type APIWrapperPostChild struct {
+	api APIWrapperPostPost
+}
+
+type APIWrapperPostChildChild struct {
+	api APIWrapperPostChild
+}
+
+// type SomeResponseHelper struct {
+// 	resesesponse.Response
+// }
+
+func (a *APIWrapper) Thing() {
+	a.Get(g.Config{
+		Path: "/example",
+	}, Endpointerino)
+}
+
+func GetAPI() *g.Client {
+	if API != nil {
+		return API
+	}
+
+	return g.API(openapi3.Info{
+		Title:       "My example API",
+		Version:     "0.0.1",
+		Description: "My cool app",
+	})
+}
+
+func Endpointerino(request *http.Request, reeeeesponse *resesesponse.Response) (*resesesponse.Response, error) {
+	pokemon, err := fetchPokemonData("pikachu")
+	if err != nil {
+		return reeeeesponse.Http500().Text("bang").BadGateway().Accepted().AlreadyReported().Created().Http102().Http204NoContent(), nil
+	}
+	return reeeeesponse.Http200().JSON(pokemon), nil
+}
+
+type Other struct {
+	Name string `json:"name"`
+}
+
 type PokemonResponse struct {
 	ID    int    `json:"id"`
 	Name  string `json:"name"`
@@ -26,8 +94,9 @@ type PokemonResponse struct {
 			Name string `json:"name"`
 		} `json:"type"`
 	} `json:"types"`
-	Height int `json:"height"`
-	Weight int `json:"weight"`
+	Height int   `json:"height"`
+	Weight int   `json:"weight"`
+	Other  Other `json:"other"`
 }
 
 // fetchPokemonData retrieves data for a given Pokemon from the PokeAPI
@@ -58,27 +127,31 @@ func fetchPokemonData(pokemonName string) (*PokemonResponse, error) {
 	return &pokemon, nil
 }
 func main() {
+	api := GetAPI()
 
-	api := goblin.API(openapi3.Info{
-		Title:       "My example API",
-		Version:     "0.0.1",
-		Description: "My cool app",
+	api.Get(g.Config{
+		Path:        "/",
+		Summary:     "Something nice",
+		Description: "Something super dooper nice",
+	}, func(request *http.Request, reeeeesponse *responses.Response) (*resesesponse.Response, error) {
+		return reeeeesponse.Http200().Text("hi"), nil
 	})
 
-	api.Get("/", func(r *http.Request) (responses.IResponse, error) {
-		return responses.Http200().Text("hi"), nil
-	})
-	api.Get("/example", func(r *http.Request) (responses.IResponse, error) {
+	api.Get(g.Config{
+		Path: "/example",
+	}, func(request *http.Request, reeeeesponse *resesesponse.Response) (*resesesponse.Response, error) {
 		pokemon, err := fetchPokemonData("pikachu")
 		if err != nil {
-			return responses.Http500().Text("bang"), nil
+			return reeeeesponse.Http500().Text("bang").BadGateway().Accepted().AlreadyReported().Created().Http102().Http204NoContent(), nil
 		}
-		return responses.Http200().JSON(pokemon), nil
+		return reeeeesponse.Http200().JSON(pokemon), nil
 	})
 
-	api.Put("/my-orbies", func(req *http.Request) (responses.IResponse, error) {
-		return responses.Continue().Text("hi"), nil
-	})
+	// api.Put(goblin.Config{
+	// 	Path: "/my-orbies",
+	// }, func(request *http.Request, response *responses.Response) (*responses.Response, error) {
+	// 	return response.Continue().Text("hi"), nil
+	// })
 
 	// api.Get("/example2", func(r *http.Request) (responses.IResponse, error) {
 	// 	if x == "bad" {
@@ -112,17 +185,6 @@ func main() {
 
 	// Create a new ServeMux
 	// mux := http.NewServeMux()
-
-	// // Add OpenAPI JSON endpoint
-	// mux.HandleFunc("/openapi.json", func(w http.ResponseWriter, r *http.Request) {
-	// 	w.Header().Set("Content-Type", "application/json")
-	// 	json.NewEncoder(w).Encode(openapi)
-	// })
-
-	// // Setup Swagger UI
-	// opts := middleware.SwaggerUIOpts{SpecURL: "/openapi.json"}
-	// sh := middleware.SwaggerUI(opts, nil)
-	// mux.Handle("/docs", sh)
 
 	// Register a single handler for all routes
 	// mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

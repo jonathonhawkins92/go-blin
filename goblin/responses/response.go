@@ -23,6 +23,10 @@ type Response struct {
 	encoder     Encoder
 }
 
+func NewResponse() *Response {
+	return &Response{}
+}
+
 func (response *Response) Body() any {
 	return response.body
 }

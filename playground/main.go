@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 
+	"fire"
 	g "goblin"
 	"goblin/responses"
 	resesesponse "goblin/responses"
@@ -16,6 +17,10 @@ import (
 //go:generate go run goblin/analyze
 
 var API *g.Client
+
+type ImportedExample struct {
+	fire.APIWrapper
+}
 
 type APIWrapperPreChildChild struct {
 	api APIWrapperPreChild
@@ -33,7 +38,7 @@ type APIWrapperPre struct {
 	APIWrapper
 }
 type APIWrapper struct {
-	nice g.Client
+	g.Client
 }
 
 type APIWrapperPost struct {

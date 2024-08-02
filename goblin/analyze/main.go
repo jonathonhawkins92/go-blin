@@ -473,6 +473,13 @@ type ChildStructInfo struct {
 	name         string `json:"name"`
 	isNamedField bool   `json:"isNamedField"`
 	owner        Owner  `json:"owner"`
+	fieldName    string `json:"fieldName"`
+	fieldType    string `json:"fieldType"`
+}
+
+type field struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
 }
 
 type StructInfo struct {
@@ -720,13 +727,13 @@ func analyzePackage(project *Project, dir string, config *packages.Config) {
 				isContainingOurs := false
 				for i := 0; i < currentStructType.NumFields(); i++ {
 					field := currentStructType.Field(i)
+					fields = append(fields, field)
 					fieldType := field.Type()
 					if fieldType == nil {
 						continue
 					}
 
 					if _, isStruct := field.Type().Underlying().(*types.Struct); !isStruct {
-						fields = append(fields, field)
 						continue
 					}
 
@@ -742,7 +749,6 @@ func analyzePackage(project *Project, dir string, config *packages.Config) {
 					childStructName := parts[1]
 
 					name := field.Name()
-					log.Println("parent", typeSpec.Name.Name, "child", name, "type", childStructName)
 					if childStructName != name && !isContainingOurs || owner == Ours {
 						name = childStructName
 					}
@@ -750,6 +756,8 @@ func analyzePackage(project *Project, dir string, config *packages.Config) {
 					children = append(children, ChildStructInfo{
 						name:         name,
 						isNamedField: childStructName != field.Name(),
+						fieldName:    field.Name(),
+						fieldType:    field.Type().String(),
 						owner:        owner,
 					})
 				}
@@ -787,15 +795,8 @@ func analyzePackage(project *Project, dir string, config *packages.Config) {
 					if childNode == nil {
 						continue
 					}
-					// if something {
 					childNode.AddParent(currentStructInfo.Index)
 					currentNode.AddChild(childStructInfo.Index)
-					// } else {
-					// 	currentNode.AddChild(currentStructInfo.Index)
-					// 	childNode.AddParent(childIndex)
-
-					// }
-
 				}
 
 				return true
@@ -991,5 +992,12 @@ func main() {
 
 	for _, pkg := range project.Packages {
 		log.Println(pkg.Structs.String())
+		// for _, s := range pkg.Structs.Data {
+		// 	log.Println()
+		// 	log.Println(s.Name)
+		// 	for _, field := range s.Fields {
+		// 		log.Println("name", field.Name(), "type", field.Type().String())
+		// 	}
+		// }
 	}
 }
